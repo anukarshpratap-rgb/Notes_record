@@ -1,54 +1,44 @@
-// --- Note Routes (routes/notes.js) ---
 const express = require('express');
 const router = express.Router();
-// Node's built-in file system module and path utilities
+//for file and path utility
 const fs = require('fs');
 const path = require('path');
 
-// Define the exact path to the JSON file (now named notes.json)
+//path to json file for data storing
 const DATA_FILE = path.join(__dirname, '../data/notes.json');
-
-// --- Helper Functions for File System Persistence ---
 
 // Function to read the notes array from the JSON file
 const readNotes = () => {
     try {
         const data = fs.readFileSync(DATA_FILE, 'utf8');
-        // JSON.parse converts the text read from the file into a JavaScript array
         return JSON.parse(data);
     } catch (error) {
-        // If the file doesn't exist or is empty, return an empty array
         return [];
     }
 };
 
 // Function to write the notes array back to the JSON file
 const writeNotes = (notes) => {
-    // JSON.stringify converts the JavaScript array into text that can be saved in the file
+    //JavaScript array to text(json.stringify)
     fs.writeFileSync(DATA_FILE, JSON.stringify(notes, null, 2), 'utf8');
 };
 
-// --- API Endpoints (Using async/await structure) ---
-
-// A. READ (GET /notes)
+//read
 router.get('/', async (req, res) => {
     try {
         console.log('GET /notes requested');
-        // We call the synchronous helper function here
         const notes = readNotes(); 
         res.json(notes);
     } catch (error) {
-        // If anything goes wrong, catch the error and send a 500 server error response
         console.error('Error reading notes:', error);
         res.status(500).json({ error: 'Failed to retrieve notes.' });
     }
 });
 
-// B. CREATE (POST /notes)
+//create
 router.post('/', async (req, res) => {
     try {
         const { title, content } = req.body;
-        
         if (!title || !content) {
             return res.status(400).json({ error: 'Title and content are required.' });
         }
@@ -75,7 +65,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// C. UPDATE (PUT /notes/:id)
+//update
 router.put('/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
@@ -96,7 +86,7 @@ router.put('/:id', async (req, res) => {
         notes[noteIndex].title = title;
         notes[noteIndex].content = content;
         
-        writeNotes(notes); // Save the changes
+        writeNotes(notes);
         
         console.log('PUT /notes/:id Updated note with ID', id);
         res.json(notes[noteIndex]);
@@ -106,7 +96,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// D. DELETE (DELETE /notes/:id)
+//delete
 router.delete('/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
@@ -121,7 +111,7 @@ router.delete('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Note not found.' });
         }
 
-        writeNotes(notes); // Save the result
+        writeNotes(notes);
 
         console.log('DELETE /notes/:id Deleted note with ID', id);
         res.status(204).send();
